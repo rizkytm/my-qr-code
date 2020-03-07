@@ -1,11 +1,15 @@
 package com.rizkytm.myqrcode;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -39,11 +43,11 @@ public class MainActivity extends AppCompatActivity implements ZXingScannerView.
     private TextView txtProgram;
     private TextView txtNama;
     private TextView txtNoKonfirmasi;
-    private TextView txtJenisTiket;
+    private TextView txtGrup;
     private TextView txtKeterangan;
     private String program;
     private String nama;
-    private String jenisTiket;
+    private String grup;
     private String status;
 //    private Button btnRestart;
 
@@ -56,28 +60,20 @@ public class MainActivity extends AppCompatActivity implements ZXingScannerView.
         txtProgram = (TextView) findViewById(R.id.txt_program);
         txtNama = (TextView) findViewById(R.id.txt_nama);
         txtNoKonfirmasi = (TextView) findViewById(R.id.txt_no_konfirmasi);
-        txtJenisTiket = (TextView) findViewById(R.id.txt_jenis_tiket);
+        txtGrup = (TextView) findViewById(R.id.txt_grup);
         txtKeterangan = (TextView) findViewById(R.id.txt_keterangan);
 
 //        btnRestart = (Button) findViewById(R.id.restart);
-//        btnRestart.setText("Send Data");
+//        btnRestart.setVisibility(View.INVISIBLE);
+//        btnRestart.setText("Start Again");
 //        btnRestart.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
 //                Intent intent = getIntent();
 //                finish();
 //                startActivity(intent);
-//                try {
-//                    sendData();
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//                txtProgram.setText("Program : ");
-//                txtNama.setText("Nama : ");
-//                txtNoKonfirmasi.setText("No Konfirmasi : ");
-//                txtJenisTiket.setText("Jenis Tiket : ");
-//                txtKeterangan.setText("Status");
-//                scannerView.startCamera();
+//                scannerView.resumeCameraPreview(MainActivity.this);
+//                btnRestart.setVisibility(View.INVISIBLE);
 //            }
 //        });
 
@@ -109,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements ZXingScannerView.
             public void run() {
 
                 try {
-                    URL url = new URL("http://merryriana.com/server_api/absensi");
+                    URL url = new URL("http://absensi.merryriana.com/absen");
 
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
@@ -137,28 +133,40 @@ public class MainActivity extends AppCompatActivity implements ZXingScannerView.
 
                     status = jsonResponse.getString("keterangan");
                     status = status.toUpperCase();
-                    if (status.equals("SUCCESS") || status.equals("ATTENDED")) {
+                    if (status.equals("SUCCESS")) {
                         nama = jsonResponse.getString("nama");
                         program = jsonResponse.getString("program");
-                        jenisTiket = jsonResponse.getString("jenis_tiket");
+                        grup = jsonResponse.getString("grup");
 
                         txtProgram.setText("Program : " + program);
                         txtNama.setText("Nama : " + nama);
                         txtNoKonfirmasi.setText("No Konfirmasi : " + noKonfirmasi);
-                        txtJenisTiket.setText("Jenis Tiket : " + jenisTiket);
+                        txtGrup.setText("Grup : " + grup);
                         txtKeterangan.setText(status);
                         txtKeterangan.setTextColor(Color.GREEN);
+                    } else if (status.equals("ATTENDED")) {
+                        nama = jsonResponse.getString("nama");
+                        program = jsonResponse.getString("program");
+                        grup = jsonResponse.getString("grup");
+
+                        txtProgram.setText("Program : " + program);
+                        txtNama.setText("Nama : " + nama);
+                        txtNoKonfirmasi.setText("No Konfirmasi : " + noKonfirmasi);
+                        txtGrup.setText("Grup : " + grup);
+                        txtKeterangan.setText(status);
+                        txtKeterangan.setTextColor(Color.RED);
                     } else {
                         nama = null;
                         program = null;
-                        jenisTiket = null;
+                        grup = null;
 
                         txtProgram.setText("Program : " + program);
                         txtNama.setText("Nama : " + nama);
                         txtNoKonfirmasi.setText("No Konfirmasi : " + noKonfirmasi);
-                        txtJenisTiket.setText("Jenis Tiket : " + jenisTiket);
+                        txtGrup.setText("Grup : " + grup);
                         txtKeterangan.setText(status);
                         txtKeterangan.setTextColor(Color.RED);
+
                     }
 
 //                    txtProgram.setText("Program : " + program);
@@ -192,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements ZXingScannerView.
     @Override
     public void handleResult(Result rawResult) {
         processRawResult(rawResult.getText());
-        scannerView.startCamera();
+//        scannerView.startCamera();
     }
 
     private void processRawResult(String text) {
@@ -261,6 +269,27 @@ public class MainActivity extends AppCompatActivity implements ZXingScannerView.
         } catch (Exception e) {
             e.printStackTrace();
         }
-        scannerView.resumeCameraPreview(MainActivity.this);
+//        scannerView.resumeCameraPreview(MainActivity.this);
+//        btnRestart.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.button_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.reload) {
+            Intent intent = getIntent();
+                finish();
+                startActivity(intent);
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }
